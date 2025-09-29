@@ -1,324 +1,191 @@
-# 📘 SDP CRYPTO - USER MANUAL
+# 🔐 SDP Crypto - File Encryption Tool
 
-## 🎯 **OVERVIEW**
-SDP Crypto adalah alat enkripsi/dekripsi file yang aman menggunakan **ECC (X25519) + AES-GCM**. Format output: `.sdp`
-
-**Fitur Utama:**
-- ✅ Enkripsi file apa saja (PDF, video, images, dll.)
-- ✅ Ukuran file tidak terbatas
-- ✅ Integritas data terjamin (SHA256 verification)
-- ✅ CLI yang mudah digunakan
+## 📖 Overview
+SDP Crypto adalah alat enkripsi/dekripsi file yang aman menggunakan **ECC (X25519) + AES-GCM**. Mendukung semua jenis file (PDF, video, images, dll.) dengan ukuran tidak terbatas. Format output: `.sdp`
 
 ---
 
-## 🚀 **INSTALASI CEPAT**
+## 🚀 Quick Start
 
-### **1. Prerequisites**
+### Installation
 ```bash
-# Pastikan Python 3.7+ terinstall
-python3 --version
-
-# Install dependency
+# 1. Install dependency
 pip install cryptography
+
+# 2. Download files SDP Crypto
+# - sdp_crypto/ folder (semua file .py)
+# - cli.py
+# - requirements.txt
 ```
 
-### **2. Download Files**
-Download file-file berikut:
-```
-sdp_crypto/
-├── __init__.py
-├── core.py
-├── key_utils.py
-├── chunking.py
-└── format.py
-cli.py
-requirements.txt
-```
-
----
-
-## 🔑 **GENERATE KEY PAIR**
-
-**Generate sekali untuk semua file:**
-
+### Basic Usage (3 Steps)
 ```bash
-# Generate key dengan nama default
+# 1. Generate keys (sekali saja)
 python3 cli.py generate-keys
 
-# Generate key dengan custom name
-python3 cli.py generate-keys --name mycompany
+# 2. Encrypt file
+python3 cli.py encrypt document.pdf --public-key mykey_public.key
 
-# Generate key untuk user tertentu
-python3 cli.py generate-keys --name alice
-```
-
-**Output:**
-```
-✅ Keys generated: mykey_private.key, mykey_public.key
-```
-
-**Keterangan:**
-- 🔒 `private.key` → **SIMPAN AMAN**, jangan dibagikan
-- 🔓 `public.key` → Boleh dibagikan untuk encrypt
-
----
-
-## 🔐 **ENKRIPSI FILE**
-
-### **Basic Usage**
-```bash
-# Encrypt file (auto output: filename.sdp)
-python3 cli.py encrypt document.pdf --public-key public.key
-```
-
-### **Advanced Options**
-```bash
-# Encrypt dengan custom output name
-python3 cli.py encrypt video.mp4 --public-key public.key --output encrypted_video.sdp
-
-# Encrypt ke path tertentu
-python3 cli.py encrypt data.xlsx --public-key public.key --output /path/to/encrypted/data.sdp
-```
-
-**Output:**
-```
-✅ Encrypted: document.pdf -> document.pdf.sdp
+# 3. Decrypt file
+python3 cli.py decrypt document.pdf.sdp --private-key mykey_private.key
 ```
 
 ---
 
-## 🔓 **DEKRIPSI FILE**
+## 📋 Command Reference
 
-### **Basic Usage**
+### 🔑 Key Management
 ```bash
-# Decrypt file (output ke current directory)
-python3 cli.py decrypt file.sdp --private-key private.key
-```
-
-### **Advanced Options**
-```bash
-# Decrypt ke folder tertentu
-python3 cli.py decrypt data.sdp --private-key private.key --output-dir decrypted_files
-
-# Decrypt dengan path lengkap
-python3 cli.py decrypt /path/to/file.sdp --private-key /path/to/private.key
-```
-
-**Output:**
-```
-✅ Decrypted: file.sdp -> ./original_filename.pdf
-```
-
----
-
-## 🔍 **CHECK ENCRYPTION STATUS**
-
-### **Check Single File**
-```bash
-# Cek status file
-python3 cli.py check document.pdf.sdp
-
-# Cek dengan detail info
-python3 cli.py check secret.sdp --info
-```
-
-### **Check All Files in Directory**
-```bash
-# Check semua file di current directory
-python3 cli.py check --dir .
-
-# Check directory tertentu
-python3 cli.py check --dir /path/to/files
-```
-
-**Contoh Output:**
-```
-🔍 Checking encryption status in: /home/user/documents
-============================================================
-✅ ENCRYPTED          financial.pdf.sdp
-✅ ENCRYPTED          backup.zip.sdp  
-❌ NOT ENCRYPTED      notes.txt
-❌ NOT ENCRYPTED      image.jpg
-============================================================
-📊 Summary: 2/4 files encrypted
-```
-
----
-
-## ⚡ **WORKFLOW EXAMPLES**
-
-### **Workflow 1: File Pribadi**
-```bash
-# Untuk encrypt file pribadi
-python3 cli.py generate-keys --name personal
-python3 cli.py encrypt diary.txt --public-key personal_public.key
-# File aman: diary.txt.sdp
-
-# Untuk buka kembali
-python3 cli.py decrypt diary.txt.sdp --private-key personal_private.key
-```
-
-### **Workflow 2: Berbagi File Aman**
-```bash
-# Anda generate keys
+# Generate key pair
+python3 cli.py generate-keys
 python3 cli.py generate-keys --name company
-# Bagikan company_public.key ke teman
 
-# Teman encrypt file untuk Anda
-python3 cli.py encrypt laporan.pdf --public-key company_public.key
-# Kirim laporan.pdf.sdp ke Anda
-
-# Anda decrypt file dari teman
-python3 cli.py decrypt laporan.pdf.sdp --private-key company_private.key
+# Output: company_private.key, company_public.key
 ```
 
-### **Workflow 3: Batch Processing**
+### 🔐 Encryption
+#### Single File
 ```bash
-# Encrypt semua PDF di folder
-for file in *.pdf; do
-    python3 cli.py encrypt "$file" --public-key public.key
-done
+# Basic encryption
+python3 cli.py encrypt file.pdf --public-key public.key
 
-# Decrypt semua .sdp files
-for file in *.sdp; do
-    python3 cli.py decrypt "$file" --private-key private.key --output-dir restored
-done
+# Custom output name
+python3 cli.py encrypt video.mp4 --public-key public.key --output encrypted.sdp
 ```
 
-### **Workflow 4: Encrypt Multiple Files**
+#### Multiple Files
 ```bash
-# Encrypt semua PDF files
+# Encrypt semua PDF
 python3 cli.py encrypt-multiple "*.pdf" --public-key public.key
 
-# Encrypt semua files dengan ekstensi tertentu
+# Encrypt berbagai tipe file
 python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key public.key
 
-# Encrypt ke directory tertentu
-python3 cli.py encrypt-multiple "*.jpg" "*.png" --public-key public.key --output-dir encrypted_images
-
-# Encrypt files spesifik
-python3 cli.py encrypt-multiple file1.pdf file2.docx report.xlsx --public-key public.key
-
-# Encrypt semua files di folder (gunakan wildcard)
-python3 cli.py encrypt-multiple "*" --public-key public.key
+# Encrypt ke folder tertentu
+python3 cli.py encrypt-multiple "*.jpg" --public-key public.key --output-dir encrypted_files
 ```
 
-### **Workflow 5: Decrypt Multiple Files**
+### 🔓 Decryption
+#### Single File
+```bash
+# Basic decryption
+python3 cli.py decrypt file.sdp --private-key private.key
+
+# Decrypt ke folder tertentu
+python3 cli.py decrypt data.sdp --private-key private.key --output-dir decrypted_files
+```
+
+#### Multiple Files
 ```bash
 # Decrypt semua .sdp files
 python3 cli.py decrypt-multiple "*.sdp" --private-key private.key
 
-# Decrypt ke directory tertentu
-python3 cli.py decrypt-multiple "*.sdp" --private-key private.key --output-dir decrypted_files
-
-# Decrypt files spesifik
-python3 cli.py decrypt-multiple file1.pdf.sdp file2.docx.sdp --private-key private.key
+# Decrypt ke folder tertentu
+python3 cli.py decrypt-multiple "*.sdp" --private-key private.key --output-dir restored_files
 ```
 
-### **Workflow 6: Batch Processing Examples**
+### 🔍 File Checking
+```bash
+# Check single file
+python3 cli.py check document.pdf.sdp
+python3 cli.py check document.pdf.sdp --info
+
+# Check semua file di folder
+python3 cli.py check --dir .
+
+# Check dengan detail info
+python3 cli.py check secret.sdp --info
+```
+
+---
+
+## 💡 Usage Examples
+
+### Example 1: Personal File Protection
+```bash
+# Encrypt file pribadi
+python3 cli.py generate-keys --name personal
+python3 cli.py encrypt diary.txt --public-key personal_public.key
+
+# Decrypt ketika diperlukan
+python3 cli.py decrypt diary.txt.sdp --private-key personal_private.key
+```
+
+### Example 2: Secure File Sharing
+```bash
+# Sender encrypt file untuk recipient
+python3 cli.py encrypt report.pdf --public-key recipient_public.key
+# Kirim report.pdf.sdp ke recipient
+
+# Recipient decrypt file
+python3 cli.py decrypt report.pdf.sdp --private-key recipient_private.key
+```
+
+### Example 3: Batch File Processing
 ```bash
 # Backup semua documents
-python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key backup_public.key --output-dir backup_encrypted
+python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key backup_public.key
 
 # Restore semua files
-python3 cli.py decrypt-multiple "backup_encrypted/*.sdp" --private-key backup_private.key --output-dir restored
-
-# Encrypt project folder
-python3 cli.py encrypt-multiple "project/**/*" --public-key project_public.key --output-dir project_encrypted
+python3 cli.py decrypt-multiple "*.sdp" --private-key backup_private.key
 ```
 
-### **Workflow 6: Batch Processing Examples**
+### Example 4: Project Protection
 ```bash
-# 1. Generate keys
-python3 cli.py generate-keys --name project
+# Encrypt seluruh project
+python3 cli.py encrypt-multiple "src/**/*" "docs/**/*" --public-key project_public.key --output-dir encrypted_project
 
-# 2. Encrypt semua file project
-python3 cli.py encrypt-multiple "*.py" "*.md" "*.json" --public-key project_public.key --output-dir encrypted_project
-
-# 3. Check hasil
-python3 cli.py check --dir encrypted_project
-
-# 4. Decrypt ketika diperlukan
+# Decrypt project
 python3 cli.py decrypt-multiple "encrypted_project/*.sdp" --private-key project_private.key --output-dir restored_project
 ```
 
 ---
 
-## 🛡️ **SECURITY BEST PRACTICES**
+## 🛡️ Security Features
 
-### **✅ DO**
-- Simpan private key di tempat aman
-- Gunakan password manager untuk private key
-- Hapus file original setelah encrypt
-- Backup private key di tempat aman
-- Verify file setelah decrypt
+### ✅ Guaranteed Security
+- **X25519** - Elliptic Curve Cryptography untuk key exchange
+- **AES-256-GCM** - Authenticated encryption
+- **HKDF-SHA256** - Secure key derivation
+- **Per-chunk encryption** - Memory efficient untuk file besar
+- **SHA256 integrity check** - File tampering detection
 
-### **❌ DON'T**
-- Jangan bagikan private key
-- Jangan simpan private key di cloud tanpa encryption
-- Jangan hapus file .sdp sebelum decrypt sukses
-- Jangan gunakan private key yang sama untuk semua purpose
+### 🔒 Key Management
+- **Private Key** → Simpan aman, jangan dibagikan
+- **Public Key** → Boleh dibagikan untuk encryption
+- **Ephemeral Keys** → Key pair baru untuk setiap encryption
 
----
-
-## 🚨 **TROUBLESHOOTING**
-
-### **Error: Module not found**
-```bash
-pip install cryptography
-```
-
-### **Error: File not found**
-```bash
-# Gunakan full path
-python3 cli.py encrypt /full/path/to/file.pdf --public-key public.key
-```
-
-### **Error: Invalid key**
-```bash
-# Pastikan key file exists
-ls -la *.key
-
-# Key harus 32 bytes
-python3 -c "print('Key size:', len(open('private.key', 'rb').read()), 'bytes')"
-```
-
-### **File besar (>1GB)**
-```bash
-# Auto handle, progress akan muncul otomatis
-# Butuh waktu lebih lama untuk file sangat besar
-```
+### 📊 File Integrity
+- Automatic SHA256 verification pada decryption
+- Error jika file modified/corrupted
+- Original filename preservation
 
 ---
 
-## 📊 **FILE MANAGEMENT**
+## ⚡ Advanced Usage
 
-### **Structure Sebelum/Sesudah**
-```
-documents/
-├── laporan.pdf          # File asli
-├── data.xlsx           # File asli
-├── laporan.pdf.sdp     # File encrypted (setelah encrypt)
-├── data.xlsx.sdp       # File encrypted (setelah encrypt)
-└── keys/
-    ├── private.key     # SIMPAN AMAN
-    └── public.key      # Boleh dibagikan
-```
-
-### **Setelah Decrypt**
-```
-decrypted/
-├── laporan.pdf         # File asli (restored)
-└── data.xlsx          # File asli (restored)
-```
-
----
-
-## 🔧 **VALIDASI KEY**
-
-### **Cek Validitas Private Key**
+### Wildcard Patterns
 ```bash
-# Buat validator sederhana
+# Support berbagai wildcard pattern
+python3 cli.py encrypt-multiple "*.pdf"           # Semua PDF
+python3 cli.py encrypt-multiple "*.docx" "*.xlsx" # Multiple extensions
+python3 cli.py encrypt-multiple "*"               # Semua files
+python3 cli.py encrypt-multiple "project/**/*"    # Recursive
+```
+
+### Large File Handling
+```bash
+# Auto progress tracking untuk file >100MB
+# Memory efficient - process per chunk (10MB default)
+# No size limits - support file sampai terabyte
+```
+
+### Validation Commands
+```bash
+# Check encryption status
+python3 cli.py check --dir .
+
+# Verify private key validity
 python3 -c "
 from cryptography.hazmat.primitives.asymmetric import x25519
 key_data = open('private.key', 'rb').read()
@@ -330,70 +197,141 @@ except:
 "
 ```
 
-### **Test Key dengan Encrypt/Decrypt**
-```bash
-echo 'test' > test.txt
-python3 cli.py encrypt test.txt --public-key public.key
-python3 cli.py decrypt test.txt.sdp --private-key private.key
-# Jika berhasil → key valid
-```
-
-## **WILDCARD SUPPORT**
-Mendukung semua wildcard pattern:
-
-- *.pdf - Semua PDF files
-
-- *.docx - Semua Word documents
-
-- *.* - Semua files dengan ekstensi
-
-- * - Semua files
-
-- project/**/* - Recursive (semua files di folder project)
-
-- file?.txt - Pattern matching
-
 ---
 
-## 🎯 **QUICK START SCRIPT**
+## 🚨 Troubleshooting
 
+### Common Issues
 ```bash
-#!/bin/bash
-# quick_test.sh - Test semua functionality
+# Error: Module not found
+pip install cryptography
 
-echo "🧪 SDP Crypto Quick Test"
-python3 cli.py generate-keys --name quicktest
-echo "Secret data" > testfile.txt
-python3 cli.py encrypt testfile.txt --public-key quicktest_public.key
-python3 cli.py check testfile.txt.sdp --info
-python3 cli.py decrypt testfile.txt.sdp --private-key quicktest_private.key
-echo "Decrypted content:"
-cat testfile.txt
-rm testfile.txt testfile.txt.sdp quicktest_*.key
-echo "✅ Test completed successfully!"
+# Error: File not found
+python3 cli.py encrypt /full/path/to/file.pdf --public-key public.key
+
+# Error: Invalid key
+ls -la *.key  # Pastikan file exists
+```
+
+### File Size Issues
+```bash
+# File sangat besar (>10GB) butuh waktu lebih lama
+# Progress indicator akan muncul otomatis
+# Memory usage tetap rendah berkat chunk processing
+```
+
+### Performance Tips
+```bash
+# Untuk file sangat besar, gunakan SSD storage
+# Batch processing lebih efisien untuk banyak file kecil
+# Network drives mungkin lebih lambat
 ```
 
 ---
 
-## 📞 **SUPPORT**
+## 📁 File Structure
 
-### **Test Basic Functionality**
+### Before Encryption
+```
+my_documents/
+├── report.pdf
+├── data.xlsx
+├── presentation.pptx
+└── notes.txt
+```
+
+### After Encryption
+```
+my_documents/
+├── report.pdf          # Original (optional: delete after encrypt)
+├── report.pdf.sdp      # Encrypted
+├── data.xlsx.sdp       # Encrypted
+├── presentation.pptx.sdp
+├── notes.txt.sdp
+└── keys/
+    ├── private.key     # KEEP SECURE
+    └── public.key      # Can share
+```
+
+### After Decryption
+```
+decrypted_files/
+├── report.pdf          # Restored original
+├── data.xlsx          # Restored original
+├── presentation.pptx
+└── notes.txt
+```
+
+---
+
+## 🔧 Technical Details
+
+### Encryption Process
+1. **Generate** ephemeral X25519 key pair
+2. **Key exchange** ECDH dengan recipient public key
+3. **Derive** AES-256 key menggunakan HKDF-SHA256
+4. **Encrypt** file per 10MB chunks dengan AES-GCM
+5. **Create** header JSON dengan metadata
+6. **Write** .sdp file dengan format: `[header][encrypted_chunks][sha256_hash]`
+
+### Supported Platforms
+- ✅ Windows 10/11
+- ✅ macOS 10.15+
+- ✅ Linux (Ubuntu, CentOS, etc.)
+- ✅ Python 3.7+
+
+### Dependencies
+- `cryptography>=41.0.0` - Only one dependency!
+
+---
+
+## 📞 Support
+
+### Quick Test
 ```bash
+# Test semua functionality
 python3 cli.py generate-keys --name test
-echo "Hello World" > hello.txt
-python3 cli.py encrypt hello.txt --public-key test_public.key
-python3 cli.py decrypt hello.txt.sdp --private-key test_private.key
-cat hello.txt  # Should show "Hello World"
+echo "Hello World" > test.txt
+python3 cli.py encrypt test.txt --public-key test_public.key
+python3 cli.py check test.txt.sdp --info
+python3 cli.py decrypt test.txt.sdp --private-key test_private.key
+cat test.txt  # Should show "Hello World"
 ```
 
-### **Check System**
+### System Check
 ```bash
+# Verify installation
 python3 --version
 python3 -c "import cryptography; print(f'Cryptography: {cryptography.__version__}')"
 ```
 
+### Get Help
+```bash
+# Show all commands
+python3 cli.py --help
+
+# Show command-specific help
+python3 cli.py encrypt --help
+python3 cli.py encrypt-multiple --help
+```
+
 ---
 
-**🎉 SELAMAT!** Anda sekarang bisa mengamankan file dengan enkripsi yang kuat. Untuk pertanyaan tambahan, lihat troubleshooting section atau buat issue baru.
+## 🎯 Summary
 
-**Keywords:** file encryption, ECC, AES-GCM, X25519, cybersecurity, data protection
+**SDP Crypto memberikan:**
+- ✅ Military-grade encryption (X25519 + AES-256-GCM)
+- ✅ Support semua file types dan sizes
+- ✅ Batch processing untuk multiple files
+- ✅ Integrity verification
+- ✅ Simple CLI interface
+- ✅ Cross-platform compatibility
+
+**Perfect untuk:**
+- 🔒 Personal file protection
+- 🏢 Enterprise data security
+- ☁️ Secure cloud storage
+- 🤝 Safe file sharing
+- 💾 Encrypted backups
+
+**🎉 Ready to secure your files!**
