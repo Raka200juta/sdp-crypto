@@ -185,6 +185,63 @@ for file in *.sdp; do
 done
 ```
 
+### **Workflow 4: Encrypt Multiple Files**
+```bash
+# Encrypt semua PDF files
+python3 cli.py encrypt-multiple "*.pdf" --public-key public.key
+
+# Encrypt semua files dengan ekstensi tertentu
+python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key public.key
+
+# Encrypt ke directory tertentu
+python3 cli.py encrypt-multiple "*.jpg" "*.png" --public-key public.key --output-dir encrypted_images
+
+# Encrypt files spesifik
+python3 cli.py encrypt-multiple file1.pdf file2.docx report.xlsx --public-key public.key
+
+# Encrypt semua files di folder (gunakan wildcard)
+python3 cli.py encrypt-multiple "*" --public-key public.key
+```
+
+### **Workflow 5: Decrypt Multiple Files**
+```bash
+# Decrypt semua .sdp files
+python3 cli.py decrypt-multiple "*.sdp" --private-key private.key
+
+# Decrypt ke directory tertentu
+python3 cli.py decrypt-multiple "*.sdp" --private-key private.key --output-dir decrypted_files
+
+# Decrypt files spesifik
+python3 cli.py decrypt-multiple file1.pdf.sdp file2.docx.sdp --private-key private.key
+```
+
+### **Workflow 6: Batch Processing Examples**
+```bash
+# Backup semua documents
+python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key backup_public.key --output-dir backup_encrypted
+
+# Restore semua files
+python3 cli.py decrypt-multiple "backup_encrypted/*.sdp" --private-key backup_private.key --output-dir restored
+
+# Encrypt project folder
+python3 cli.py encrypt-multiple "project/**/*" --public-key project_public.key --output-dir project_encrypted
+```
+
+### **Workflow 6: Batch Processing Examples**
+```bash
+# 1. Generate keys
+python3 cli.py generate-keys --name project
+
+# 2. Encrypt semua file project
+python3 cli.py encrypt-multiple "*.py" "*.md" "*.json" --public-key project_public.key --output-dir encrypted_project
+
+# 3. Check hasil
+python3 cli.py check --dir encrypted_project
+
+# 4. Decrypt ketika diperlukan
+python3 cli.py decrypt-multiple "encrypted_project/*.sdp" --private-key project_private.key --output-dir restored_project
+```
+
 ---
 
 ## 🛡️ **SECURITY BEST PRACTICES**
@@ -280,6 +337,21 @@ python3 cli.py encrypt test.txt --public-key public.key
 python3 cli.py decrypt test.txt.sdp --private-key private.key
 # Jika berhasil → key valid
 ```
+
+## **WILDCARD SUPPORT**
+Mendukung semua wildcard pattern:
+
+- *.pdf - Semua PDF files
+
+- *.docx - Semua Word documents
+
+- *.* - Semua files dengan ekstensi
+
+- * - Semua files
+
+- project/**/* - Recursive (semua files di folder project)
+
+- file?.txt - Pattern matching
 
 ---
 

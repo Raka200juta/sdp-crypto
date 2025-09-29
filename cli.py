@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import struct
+import glob
 from sdp_crypto import generate_keypair, encrypt_to_sdp, decrypt_from_sdp
 
 def is_sdp_encrypted(file_path):
@@ -98,20 +99,62 @@ def check_files_in_directory(directory='.'):
             status = "✅ ENCRYPTED" if is_encrypted else "❌ NOT ENCRYPTED"
             results.append((file, status, file_path))
     
-    # Sort results: encrypted first
-    results.sort(key=lambda x: x[1], reverse=True)
+def encrypt_multiple_files(public_key_path, file_patterns, output_dir=None):
+    """Encrypt multiple files matching patterns"""
+    with open(public_key_path, 'rb') as f:
+        pub_key = f.read()
     
-    for filename, status, file_path in results:
-        print(f"{status:20} {filename}")
+    encrypted_files = []
     
-    # Summary
-    encrypted_count = sum(1 for _, status, _ in results if status == "✅ ENCRYPTED")
-    total_count = len(results)
+    for pattern in file_patterns:
+        matched_files = glob.glob(pattern)
+        if not matched_files:
+            print(f"⚠️  No files found matching: {pattern}")
+            continue
+            
+        for file_path in matched_files:
+            if os.path.isfile(file_path):
+                try:
+                    if output_dir:
+                        # Create output directory if it doesn't exist
+                        os.makedirs(output_dir, exist_ok=True)
+                        output_file = os.path.join(output_dir, os.path.basename(file_path) + '.sdp')
+                    else:
+                        output_file = file_path + '.sdp'
+                    
+                    encrypt_to_sdp(pub_key, file_path, output_file)
+                    encrypted_files.append((file_path, output_file))
+                    print(f"✅ Encrypted: {file_path} -> {output_file}")
+                    
+                except Exception as e:
+                    print(f"❌ Failed to encrypt {file_path}: {e}")
     
-    print("=" * 60)
-    print(f"📊 Summary: {encrypted_count}/{total_count} files encrypted")
+    return encrypted_files
+
+def decrypt_multiple_files(private_key_path, sdp_patterns, output_dir='.'):
+    """Decrypt multiple .sdp files matching patterns"""
+    with open(private_key_path, 'rb') as f:
+        priv_key = f.read()
     
-    return results
+    decrypted_files = []
+    
+    for pattern in sdp_patterns:
+        matched_files = glob.glob(pattern)
+        if not matched_files:
+            print(f"⚠️  No files found matching: {pattern}")
+            continue
+            
+        for file_path in matched_files:
+            if os.path.isfile(file_path) and file_path.endswith('.sdp'):
+                try:
+                    decrypted_path = decrypt_from_sdp(priv_key, file_path, output_dir)
+                    decrypted_files.append((file_path, decrypted_path))
+                    print(f"✅ Decrypted: {file_path} -> {decrypted_path}")
+                    
+                except Exception as e:
+                    print(f"❌ Failed to decrypt {file_path}: {e}")
+    
+    return decrypted_files
 
 def main():
     parser = argparse.ArgumentParser(description="SDP Crypto - File Encryption Tool")
@@ -121,17 +164,29 @@ def main():
     key_parser = subparsers.add_parser('generate-keys', help='Generate key pair')
     key_parser.add_argument('--name', default='mykey', help='Key name prefix')
     
-    # Encrypt command
+    # Encrypt command (single file)
     encrypt_parser = subparsers.add_parser('encrypt', help='Encrypt a file')
     encrypt_parser.add_argument('file', help='File to encrypt')
     encrypt_parser.add_argument('--public-key', required=True, help='Public key file')
     encrypt_parser.add_argument('--output', help='Output .sdp file')
     
-    # Decrypt command  
+    # Encrypt-multiple command
+    encrypt_multi_parser = subparsers.add_parser('encrypt-multiple', help='Encrypt multiple files')
+    encrypt_multi_parser.add_argument('files', nargs='+', help='Files to encrypt (supports wildcards)')
+    encrypt_multi_parser.add_argument('--public-key', required=True, help='Public key file')
+    encrypt_multi_parser.add_argument('--output-dir', help='Output directory for encrypted files')
+    
+    # Decrypt command (single file)
     decrypt_parser = subparsers.add_parser('decrypt', help='Decrypt a file')
     decrypt_parser.add_argument('file', help='.sdp file to decrypt')
     decrypt_parser.add_argument('--private-key', required=True, help='Private key file')
     decrypt_parser.add_argument('--output-dir', default='.', help='Output directory')
+    
+    # Decrypt-multiple command
+    decrypt_multi_parser = subparsers.add_parser('decrypt-multiple', help='Decrypt multiple files')
+    decrypt_multi_parser.add_argument('files', nargs='+', help='.sdp files to decrypt (supports wildcards)')
+    decrypt_multi_parser.add_argument('--private-key', required=True, help='Private key file')
+    decrypt_multi_parser.add_argument('--output-dir', default='.', help='Output directory')
     
     # Checker command
     check_parser = subparsers.add_parser('check', help='Check encryption status')
@@ -153,7 +208,7 @@ def main():
         print(f"✅ Keys generated: {args.name}_private.key, {args.name}_public.key")
         
     elif args.command == 'encrypt':
-        # Encrypt file
+        # Encrypt single file
         with open(args.public_key, "rb") as f:
             pub_key = f.read()
             
@@ -162,15 +217,26 @@ def main():
         encrypt_to_sdp(pub_key, args.file, output_file)
         print(f"✅ Encrypted: {args.file} -> {output_file}")
         
+    elif args.command == 'encrypt-multiple':
+        # Encrypt multiple files
+        encrypted_files = encrypt_multiple_files(args.public_key, args.files, args.output_dir)
+        print(f"\n📊 Summary: {len(encrypted_files)} files encrypted successfully")
+        
     elif args.command == 'decrypt':
-        # Decrypt file
+        # Decrypt single file
         with open(args.private_key, "rb") as f:
             priv_key = f.read()
             
         decrypted_path = decrypt_from_sdp(priv_key, args.file, args.output_dir)
         print(f"✅ Decrypted: {args.file} -> {decrypted_path}")
         
+    elif args.command == 'decrypt-multiple':
+        # Decrypt multiple files
+        decrypted_files = decrypt_multiple_files(args.private_key, args.files, args.output_dir)
+        print(f"\n📊 Summary: {len(decrypted_files)} files decrypted successfully")
+        
     elif args.command == 'check':
+        # Checker functionality (tetap sama)
         if args.file:
             # Check single file
             file_path = args.file
@@ -187,16 +253,6 @@ def main():
                             print(f"  Encrypted size: {info['encrypted_size']:,} bytes")
                             print(f"  Algorithm: {info['algorithm']}")
                             print(f"  Timestamp: {info['timestamp']}")
-                            print(f"  Chunk size: {info['chunk_size']:,} bytes")
-                            print(f"  Total chunks: {info['total_chunks']}")
-                            print(f"  Header size: {info['header_size']} bytes")
-                            print(f"  Data size: {info['data_size']:,} bytes")
-                            print(f"  Footer size: {info['footer_size']} bytes")
-                            
-                            # Calculate overhead
-                            overhead = info['encrypted_size'] - info['original_size']
-                            overhead_pct = (overhead / info['original_size']) * 100 if info['original_size'] > 0 else 0
-                            print(f"  Encryption overhead: {overhead:,} bytes ({overhead_pct:.2f}%)")
                 else:
                     print(f"❌ {file_path} - NOT ENCRYPTED")
             else:
