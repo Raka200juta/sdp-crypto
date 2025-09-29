@@ -3,6 +3,12 @@
 ## 📖 Overview
 SDP Crypto adalah alat enkripsi/dekripsi file yang aman menggunakan **ECC (X25519) + AES-GCM**. Mendukung semua jenis file (PDF, video, images, dll.) dengan ukuran tidak terbatas. Format output: `.sdp`
 
+**Fitur Unggulan:**
+- ✅ **Folder Encryption** - Encrypt seluruh folder sekaligus
+- ✅ **Absolute Path Support** - File/folder di mana saja di system
+- ✅ **Recursive Processing** - Include semua subfolder
+- ✅ **Military-grade Encryption** - X25519 + AES-256-GCM
+
 ---
 
 ## 🚀 Quick Start
@@ -39,11 +45,10 @@ python3 cli.py decrypt document.pdf.sdp --private-key mykey_private.key
 # Generate key pair
 python3 cli.py generate-keys
 python3 cli.py generate-keys --name company
-
-# Output: company_private.key, company_public.key
 ```
 
 ### 🔐 Encryption
+
 #### Single File
 ```bash
 # Basic encryption
@@ -60,12 +65,22 @@ python3 cli.py encrypt-multiple "*.pdf" --public-key public.key
 
 # Encrypt berbagai tipe file
 python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key public.key
+```
 
-# Encrypt ke folder tertentu
-python3 cli.py encrypt-multiple "*.jpg" --public-key public.key --output-dir encrypted_files
+#### Entire Folder 🆕
+```bash
+# Encrypt seluruh folder
+python3 cli.py encrypt-folder ~/Documents/makan --public-key public.key
+
+# Encrypt folder dengan subfolder
+python3 cli.py encrypt-folder /path/to/folder --public-key public.key --recursive
+
+# Encrypt ke output directory khusus
+python3 cli.py encrypt-folder ~/makan --public-key public.key --output-dir ~/makan_encrypted
 ```
 
 ### 🔓 Decryption
+
 #### Single File
 ```bash
 # Basic decryption
@@ -79,9 +94,18 @@ python3 cli.py decrypt data.sdp --private-key private.key --output-dir decrypted
 ```bash
 # Decrypt semua .sdp files
 python3 cli.py decrypt-multiple "*.sdp" --private-key private.key
+```
 
-# Decrypt ke folder tertentu
-python3 cli.py decrypt-multiple "*.sdp" --private-key private.key --output-dir restored_files
+#### Entire Folder 🆕
+```bash
+# Decrypt seluruh folder
+python3 cli.py decrypt-folder ~/makan_encrypted --private-key private.key
+
+# Decrypt folder recursive
+python3 cli.py decrypt-folder ~/encrypted_data --private-key private.key --recursive
+
+# Decrypt ke directory tertentu
+python3 cli.py decrypt-folder ~/makan_encrypted --private-key private.key --output-dir ~/makan_restored
 ```
 
 ### 🔍 File Checking
@@ -92,9 +116,6 @@ python3 cli.py check document.pdf.sdp --info
 
 # Check semua file di folder
 python3 cli.py check --dir .
-
-# Check dengan detail info
-python3 cli.py check secret.sdp --info
 ```
 
 ---
@@ -121,7 +142,18 @@ python3 cli.py encrypt report.pdf --public-key recipient_public.key
 python3 cli.py decrypt report.pdf.sdp --private-key recipient_private.key
 ```
 
-### Example 3: Batch File Processing
+### Example 3: Folder Protection 🆕
+```bash
+# Encrypt seluruh folder project
+python3 cli.py encrypt-folder ~/Projects/myapp --public-key project_public.key --recursive
+
+# Folder akan tersimpan sebagai: ~/Projects/myapp_encrypted
+
+# Decrypt ketika perlu edit
+python3 cli.py decrypt-folder ~/Projects/myapp_encrypted --private-key project_private.key --output-dir ~/Projects/myapp_restored
+```
+
+### Example 4: Batch File Processing
 ```bash
 # Backup semua documents
 python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key backup_public.key
@@ -130,13 +162,61 @@ python3 cli.py encrypt-multiple "*.pdf" "*.docx" "*.xlsx" --public-key backup_pu
 python3 cli.py decrypt-multiple "*.sdp" --private-key backup_private.key
 ```
 
-### Example 4: Project Protection
+### Example 5: Cross-Platform Absolute Path 🆕
 ```bash
-# Encrypt seluruh project
-python3 cli.py encrypt-multiple "src/**/*" "docs/**/*" --public-key project_public.key --output-dir encrypted_project
+# Windows
+python3 cli.py encrypt-folder "C:\Users\yor\Documents\makan" --public-key public.key
 
-# Decrypt project
-python3 cli.py decrypt-multiple "encrypted_project/*.sdp" --private-key project_private.key --output-dir restored_project
+# Linux
+python3 cli.py encrypt-folder "/home/yor/makan" --public-key public.key
+
+# Mac
+python3 cli.py encrypt-folder "/Users/yor/Documents/makan" --public-key public.key
+
+# Relative path
+python3 cli.py encrypt-folder "../makan" --public-key public.key
+```
+
+---
+
+## 🆕 Folder Encryption Features
+
+### Preserve Directory Structure
+```
+Original Folder:
+/home/yor/makan/
+├── resep_rendang.pdf
+├── menu_restaurant.docx
+└── foto_makanan/
+    ├── restaurant1.jpg
+    └── restaurant2.png
+
+Encrypted Folder:
+/home/yor/makan_encrypted/
+├── resep_rendang.pdf.sdp
+├── menu_restaurant.docx.sdp
+└── foto_makanan/
+    ├── restaurant1.jpg.sdp
+    └── restaurant2.png.sdp
+```
+
+### Recursive Processing
+```bash
+# Encrypt folder dan SEMUA subfolder
+python3 cli.py encrypt-folder ~/Documents --public-key public.key --recursive
+
+# Decrypt folder dan SEMUA subfolder
+python3 cli.py decrypt-folder ~/Documents_encrypted --private-key private.key --recursive
+```
+
+### Auto Output Directory
+```bash
+# Default: folder_encrypted
+python3 cli.py encrypt-folder ~/makan --public-key public.key
+# Output: ~/makan_encrypted
+
+# Custom output directory
+python3 cli.py encrypt-folder ~/makan --public-key public.key --output-dir ~/backup_encrypted
 ```
 
 ---
@@ -180,21 +260,18 @@ python3 cli.py encrypt-multiple "project/**/*"    # Recursive
 # No size limits - support file sampai terabyte
 ```
 
-### Validation Commands
+### Path Examples 🆕
 ```bash
-# Check encryption status
-python3 cli.py check --dir .
+# Absolute paths
+python3 cli.py encrypt-folder "/home/user/secret_docs" --public-key public.key
+python3 cli.py encrypt "/home/user/videos/vacation.mp4" --public-key public.key
 
-# Verify private key validity
-python3 -c "
-from cryptography.hazmat.primitives.asymmetric import x25519
-key_data = open('private.key', 'rb').read()
-try:
-    x25519.X25519PrivateKey.from_private_bytes(key_data)
-    print('✅ Private key VALID')
-except:
-    print('❌ Private key INVALID')
-"
+# Relative paths
+python3 cli.py encrypt-folder "../client_files" --public-key public.key
+python3 cli.py encrypt "../../reports/q1.pdf" --public-key public.key
+
+# Network paths (jika supported OS)
+python3 cli.py encrypt-folder "/mnt/nas/documents" --public-key public.key
 ```
 
 ---
@@ -213,11 +290,16 @@ python3 cli.py encrypt /full/path/to/file.pdf --public-key public.key
 ls -la *.key  # Pastikan file exists
 ```
 
-### File Size Issues
+### Folder Encryption Issues 🆕
 ```bash
-# File sangat besar (>10GB) butuh waktu lebih lama
-# Progress indicator akan muncul otomatis
-# Memory usage tetap rendah berkat chunk processing
+# Folder tidak ditemukan
+python3 cli.py encrypt-folder /path/that/exists --public-key public.key
+
+# Permission denied
+sudo python3 cli.py encrypt-folder /protected/folder --public-key public.key
+
+# Output directory sudah ada
+python3 cli.py encrypt-folder ~/makan --public-key public.key --output-dir ~/custom_output
 ```
 
 ### Performance Tips
@@ -229,37 +311,48 @@ ls -la *.key  # Pastikan file exists
 
 ---
 
-## 📁 File Structure
+## 📁 File Structure Examples
 
 ### Before Encryption
 ```
-my_documents/
-├── report.pdf
-├── data.xlsx
-├── presentation.pptx
-└── notes.txt
+/home/yor/documents/
+├── work/
+│   ├── report.pdf
+│   └── data.xlsx
+├── personal/
+│   ├── photos/
+│   │   └── vacation.jpg
+│   └── notes.txt
+└── projects/
+    └── code.py
 ```
 
-### After Encryption
+### After Folder Encryption
 ```
-my_documents/
-├── report.pdf          # Original (optional: delete after encrypt)
-├── report.pdf.sdp      # Encrypted
-├── data.xlsx.sdp       # Encrypted
-├── presentation.pptx.sdp
-├── notes.txt.sdp
-└── keys/
-    ├── private.key     # KEEP SECURE
-    └── public.key      # Can share
+/home/yor/documents_encrypted/
+├── work/
+│   ├── report.pdf.sdp
+│   └── data.xlsx.sdp
+├── personal/
+│   ├── photos/
+│   │   └── vacation.jpg.sdp
+│   └── notes.txt.sdp
+└── projects/
+    └── code.py.sdp
 ```
 
-### After Decryption
+### After Folder Decryption
 ```
-decrypted_files/
-├── report.pdf          # Restored original
-├── data.xlsx          # Restored original
-├── presentation.pptx
-└── notes.txt
+/home/yor/documents_restored/
+├── work/
+│   ├── report.pdf
+│   └── data.xlsx
+├── personal/
+│   ├── photos/
+│   │   └── vacation.jpg
+│   └── notes.txt
+└── projects/
+    └── code.py
 ```
 
 ---
@@ -298,6 +391,20 @@ python3 cli.py decrypt test.txt.sdp --private-key test_private.key
 cat test.txt  # Should show "Hello World"
 ```
 
+### Folder Test 🆕
+```bash
+# Test folder encryption
+mkdir -p ~/test_folder/subfolder
+echo "File 1" > ~/test_folder/file1.txt
+echo "File 2" > ~/test_folder/subfolder/file2.txt
+
+python3 cli.py encrypt-folder ~/test_folder --public-key test_public.key --recursive
+python3 cli.py decrypt-folder ~/test_folder_encrypted --private-key test_private.key --recursive
+
+# Verify
+diff -r ~/test_folder ~/test_folder_decrypted
+```
+
 ### System Check
 ```bash
 # Verify installation
@@ -311,8 +418,8 @@ python3 -c "import cryptography; print(f'Cryptography: {cryptography.__version__
 python3 cli.py --help
 
 # Show command-specific help
-python3 cli.py encrypt --help
-python3 cli.py encrypt-multiple --help
+python3 cli.py encrypt-folder --help
+python3 cli.py decrypt-folder --help
 ```
 
 ---
@@ -320,18 +427,21 @@ python3 cli.py encrypt-multiple --help
 ## 🎯 Summary
 
 **SDP Crypto memberikan:**
-- ✅ Military-grade encryption (X25519 + AES-256-GCM)
-- ✅ Support semua file types dan sizes
-- ✅ Batch processing untuk multiple files
-- ✅ Integrity verification
-- ✅ Simple CLI interface
-- ✅ Cross-platform compatibility
+- ✅ **Folder Encryption** - Entire folders dengan satu command
+- ✅ **Absolute Path Support** - Files di mana saja di system
+- ✅ **Military-grade encryption** (X25519 + AES-256-GCM)
+- ✅ **All file types & sizes** support
+- ✅ **Batch processing** untuk multiple files
+- ✅ **Integrity verification**
+- ✅ **Simple CLI interface**
+- ✅ **Cross-platform compatibility**
 
 **Perfect untuk:**
-- 🔒 Personal file protection
-- 🏢 Enterprise data security
-- ☁️ Secure cloud storage
-- 🤝 Safe file sharing
-- 💾 Encrypted backups
+- 🔒 **Personal file protection**
+- 🏢 **Enterprise data security**
+- 📁 **Folder backup encryption**
+- ☁️ **Secure cloud storage**
+- 🤝 **Safe file sharing**
+- 💾 **Encrypted backups**
 
-**🎉 Ready to secure your files!**
+**🎉 Your files are now secure anywhere in your system!**
